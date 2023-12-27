@@ -1,0 +1,11 @@
+%post
+sudo dnf groupinstall "Server with GUI" --skip-broken -y
+sudo systemctl set-default graphical
+
+install ssh Server
+dnf install openssh-server
+sudo systemctl enable sshd
+sudo systemctl start sshd
+firewall-cmd --zone=public --permanent --add-service=ssh
+reboot
+%end
