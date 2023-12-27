@@ -1,0 +1,3 @@
+[submodule "ansible-packer"]
+	path = ansible-packer
+	url = https://github.com/seantanjx/ansible-packer.git

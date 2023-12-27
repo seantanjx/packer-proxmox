@@ -1,0 +1,46 @@
+#cloud-config
+autoinstall:
+    version: 1
+    locale: en_US
+    keyboard:
+        layout: us
+    ssh:
+        install-server: true
+        allow-pw: true
+        disable_root: true
+        ssh_quiet_keygen: true
+        allow_public_ssh_keys: true
+    package_update: true
+    package_upgrade: true
+    packages:
+        - qemu-guest-agent
+        - sudo
+        - python3
+        - python3-pip
+    network:
+        version: 2
+        ethernets:
+            ens18:
+                dhcp4: true
+                dhcp-identifier: mac
+    storage:
+        layout:
+            name: direct
+        swap:
+            size: 0
+    user-data:
+        timezone: Asia/Singapore
+        users:
+        - name: proxmox
+          groups: [adm, sudo]
+          lock-passwd: false
+          sudo: ALL=(ALL) NOPASSWD:ALL
+          shell: /bin/bash
+          ssh_authorized_keys:
+              - ssh-ed25519 <key>
+    ansible: # still not working...
+        install_method: pip
+        package_name: ansible
+        pull:
+            url: "https://github.com/<url>.git"
+            playbook_name: playbook.yml
