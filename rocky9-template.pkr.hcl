@@ -29,11 +29,11 @@ source "proxmox-iso" "rocky-9-template" {
     vm_name                     = "Rocky-9-template"
 
     # VM OS configuration
-    iso_file                    = "local:iso/Rocky-9.3-x86_64-minimal.iso"
+    iso_file                    = "local:iso/Rocky-9.3-x86_64-dvd.iso"
     iso_checksum                = "none"
     iso_storage_pool            = "local"
     template_name               = "rocky-9-template-${var.vm_id}"
-    template_description        = "packer generated Rocky-9.3-x86_64-minimal"
+    template_description        = "packer generated Rocky-9.3-x86_64-dvd"
     unmount_iso                 = true
     qemu_agent                  = true
     cpu_type                    = "host"
@@ -59,35 +59,27 @@ source "proxmox-iso" "rocky-9-template" {
     }
     
     # Packer boot commands
+    // boot_command = [
+    //     "<up>e<down><down><end> inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg network --noipv6 rd.shell<leftCtrlOn>x<leftCtrlOff>"
+    // ]
     boot_command = [
-        "<tab><bs><bs><bs><bs><bs>inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/kickstart.cfg<enter><wait>"
+        "<tab> text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
     ]
-    boot                        = "c"
     boot_wait                   = "5s"
 
     # Packer autoinstall settings
-    http_directory              = "http"
+    http_directory              = "kickstart"
 
     # SSH Settings
     ssh_username                = "proxmox"
     ssh_private_key_file        = "~/.ssh/id_ed25519"
-    ssh_timeout                 = "10m"
+    ssh_timeout                 = "15m"
 
 }
 
 # Build Definition to create the VM Template
 build {
-    name = "rocky9-template"
     sources = ["source.proxmox-iso.rocky-9-template"]
-
-    provisioner "shell" {
-        inline = [
-            "dnf -y update",
-            "dnf -y install python3",
-            "dnf -y install python3-pip",
-            "pip3 install ansible"
-        ]
-    }
 
     provisioner "ansible-local" {
         playbook_file = "ansible-packer/playbook.yml"
