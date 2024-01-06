@@ -1,3 +1,12 @@
+packer {
+  required_plugins {
+    ansible = {
+      version = ">= 1.1.1"
+      source  = "github.com/hashicorp/ansible"
+    }
+  }
+}
+
 # Variable Definitions
 variable "proxmox_api_url" {
     type = string
@@ -35,7 +44,7 @@ source "proxmox-iso" "rocky-9-template" {
     template_name               = "rocky-9-template-${var.vm_id}"
     template_description        = "packer generated Rocky-9.3-x86_64-dvd"
     unmount_iso                 = true
-    qemu_agent                  = true
+    // qemu_agent                  = true
     cpu_type                    = "host"
 
 
@@ -63,35 +72,49 @@ source "proxmox-iso" "rocky-9-template" {
     //     "<up>e<down><down><end> inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg network --noipv6 rd.shell<leftCtrlOn>x<leftCtrlOff>"
     // ]
     boot_command = [
-        "<tab> text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+        "<tab> inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
     ]
-    boot_wait                   = "5s"
+    boot_wait                   = "10s"
 
     # Packer autoinstall settings
     http_directory              = "kickstart"
 
     # SSH Settings
-    ssh_username                = "proxmox"
-    ssh_private_key_file        = "~/.ssh/id_ed25519"
+    ssh_username                = "packer"
+    ssh_password                = "test"
+    // ssh_private_key_file        = "~/.ssh/id_ed25519"
     ssh_timeout                 = "15m"
 
 }
 
 # Build Definition to create the VM Template
 build {
+    name = "proxmox-rl9"
     sources = ["source.proxmox-iso.rocky-9-template"]
-
-    provisioner "ansible-local" {
-        playbook_file = "ansible-packer/playbook.yml"
-    }
 
     provisioner "shell" {
         inline = [
-            "sudo apt-get install -y ca-certificates curl gnupg lsb-release",
-            "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg",
-            "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
-            "sudo apt-get -y update",
-            "sudo apt-get install -y docker-ce docker-ce-cli containerd.io"
+            "date"
         ]
+    }
+
+    // provisioner "shell" {
+    //     inline = [
+    //         "sudo dnf update -y",
+    //         "sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo",
+    //         "sudo dnf -y install docker-ce docker-ce-cli containerd.io docker-compose-plugin",
+    //         "sudo chmod 755 /etc/rc.d/rc.local",
+    //         "sudo systemctl --now enable docker"
+    //     ]
+    // }
+
+    provisioner "shell" {
+        inline = [
+            "pip install ansible",
+        ]
+    }
+
+    provisioner "ansible-local" {
+        playbook_file = "ansible-packer/playbook.yml"
     }
 }

@@ -41,6 +41,7 @@ echo $packer_template
 file_path='./VM_tracker.txt'
 vm_id=$(($(tail -n 1 "$file_path") + 1))
 
+packer init $packer_template
 result=$(packer validate -var "proxmox_api_url=$proxmox_api_url" -var "proxmox_api_token_id=$proxmox_api_token_id" -var "proxmox_api_token_secret=$proxmox_api_token_secret" -var "vm_id=$vm_id" $packer_template)
 if [ $? -eq 0 ]; then
     echo "Validation successful for VM_ID=$vm_id. Proceeding with subsequent commands."
